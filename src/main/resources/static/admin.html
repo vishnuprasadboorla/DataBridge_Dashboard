@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        h1 {
+            font-size: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        th {
+            cursor: pointer;
+        }
+        .btn-refresh {
+            margin-bottom: 20px;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+        <div class="form-group">
+            <input type="text" class="form-control" id="username" placeholder="Username" required />
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control" id="password" placeholder="Password" required />
+        </div>
+        <button class="btn btn-primary btn-block" onclick="adminLogin()">Login</button>
+    </div>
+
+    <!-- Admin Content -->
+    <div id="adminContent" style="display: none;">
+        <div id="statusMessage"></div>
+
+        <!-- Refresh Button -->
+        <button class="btn btn-success btn-refresh" onclick="loadAdminData()">Refresh Data</button>
+
+        <!-- User Table -->
+        <h2>All Users</h2>
+        <table id="userTable" class="table table-bordered">
+            <thead class="thead-light">
+            <tr>
+                <th onclick="sortTable('userTable', 0)">Username</th>
+                <th onclick="sortTable('userTable', 1)">Password</th>
+                <th onclick="sortTable('userTable', 2, true)">Signup Timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic User Data will be inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Login Status Table -->
+        <h2>Login Statuses</h2>
+        <table id="loginStatusTable" class="table table-bordered">
+            <thead class="thead-light">
+            <tr>
+                <th onclick="sortTable('loginStatusTable', 0)">Username</th>
+                <th onclick="sortTable('loginStatusTable', 1)">Password</th>
+                <th onclick="sortTable('loginStatusTable', 2, true)">Login Timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Dynamic Login Data will be inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Logout Button -->
+        <div class="text-center">
+            <a href="javascript:void(0)" class="logout-btn" onclick="logout()">Logout</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hardcoded admin credentials
+    const adminUsername = 'admin';
+    const adminPassword = 'admin@123';
+
+    let sortDirection = {}; // To track sort direction per table
+
+    // Function to handle admin login
+    function adminLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (username === adminUsername && password === adminPassword) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadAdminData();  // Load user data and login statuses on login
+        } else {
+            showAlert('Invalid username or password. Please try again.', 'danger');
+        }
+    }
+
+    // Function to show alert messages
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.innerText = message;
+        document.getElementById('statusMessage').appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);  // Remove alert after 3 seconds
+    }
+
+    // Function to load admin data (users and login statuses)
+    async function loadAdminData() {
+        try {
+            const usersResponse = await fetch('http://localhost:8080/api/getAllUsers');
+            const usersData = await usersResponse.json();
+            populateTable('userTable', usersData);
+
+            const loginStatusesResponse = await fetch('http://localhost:8080/api/getAllLoginStatuses');
+            const loginStatusesData = await loginStatusesResponse.json();
+            populateTable('loginStatusTable', loginStatusesData);
+        } catch (error) {
+            showAlert('Error fetching data. Please try again later.', 'danger');
+        }
+    }
+
+    // Function to populate table with data
+    function populateTable(tableId, data) {
+        const tableBody = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+        tableBody.innerHTML = ''; // Clear existing rows
+
+        for (const username in data) {
+            const row = tableBody.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            cell1.innerText = username;
+            cell2.innerText = data[username].password;
+            cell3.innerText = data[username].signupTimestamp || data[username].loginTimestamp;
+        }
+    }
+
+    // Function to sort the table
+    function sortTable(tableId, columnIndex, isTimestamp = false) {
+        const table = document.getElementById(tableId);
+        const rows = Array.from(table.getElementsByTagName('tbody')[0].rows);
+        const isAsc = sortDirection[tableId + columnIndex] = !sortDirection[tableId + columnIndex];
+
+        rows.sort((a, b) => {
+            let valA = a.cells[columnIndex].innerText;
+            let valB = b.cells[columnIndex].innerText;
+
+            if (isTimestamp) {
+                valA = new Date(valA);
+                valB = new Date(valB);
+                return isAsc ? valB - valA : valA - valB;
+            } else {
+                return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+        });
+
+        // Reinsert sorted rows into the table body
+        const tbody = table.getElementsByTagName('tbody')[0];
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Logout function
+    function logout() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('adminContent').style.display = 'none';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+    }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

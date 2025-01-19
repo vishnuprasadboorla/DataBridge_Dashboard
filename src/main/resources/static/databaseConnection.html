@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataBridge Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #responseMessage {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 10px;
+        }
+        .section-divider {
+            height: 2px; /* Thickness of the line */
+            background-color: #b0b0b0; /* Light black (adjust as needed) */
+            margin: 30px 0; /* Spacing around the line */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow effect */
+            border-radius: 1px; /* Smooth edges for better aesthetics */
+        }
+        .button-group button {
+            text-align: center; /* Center-align button text */
+        }
+    </style>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">DataBridge Dashboard</a>
+        <!-- Dark Mode Toggle Button -->
+        <button class="btn btn-outline-dark" id="modeToggle" type="button">
+            Switch to Dark Mode
+        </button>
+    </div>
+</nav>
+
+<div class="container mt-3">
+    <h1 class="text-center mb-4">DataBridge Dashboard</h1>
+    <div class="p-4 border rounded shadow mb-5">
+        <h2 class="text-center">Save Connection Details</h2>
+        <form id="connectionForm">
+            <div class="mb-3">
+                <label for="dbUniqueId" class="form-label">Database Unique ID</label>
+                <input type="text" class="form-control" id="dbUniqueId" placeholder="Enter Unique ID" required>
+            </div>
+            <div class="mb-3">
+                <label for="url" class="form-label">Database URL</label>
+                <input type="text" class="form-control" id="url" placeholder="Enter Database URL" required>
+            </div>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter Username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter Password" required>
+            </div>
+            <div class="mb-3">
+                <label for="port" class="form-label">Port</label>
+                <input type="number" class="form-control" id="port" placeholder="Enter Port" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Save Connection</button>
+        </form>
+
+        <!-- View Saved Connections Button -->
+        <button id="viewConnectionsBtn" class="btn btn-info mt-3 w-100">View Saved Connections</button>
+
+        <!-- Table for displaying saved connections -->
+        <div class="mt-4">
+            <table id="connectionsTable" class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Unique ID</th>
+                    <th>URL</th>
+                    <th>Username</th>
+                    <th>Port</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Data rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Export Options -->
+        <h2 class="mt-4 text-center">Export Data</h2>
+        <div class="mb-3">
+            <label for="exportDbUniqueId" class="form-label">Database Unique ID</label>
+            <input type="text" class="form-control" id="exportDbUniqueId" placeholder="Enter Database Unique ID for export" required>
+        </div>
+        <div class="mb-3">
+            <label for="exportSchemaName" class="form-label">Schema Name</label>
+            <input type="text" class="form-control" id="exportSchemaName" placeholder="Enter Schema Name" required>
+        </div>
+        <div class="mb-3">
+            <label for="exportTableName" class="form-label">Table Name</label>
+            <input type="text" class="form-control" id="exportTableName" placeholder="Enter Table Name" required>
+        </div>
+        <div class="button-group d-flex justify-content-between">
+            <button id="exportCsvBtn" class="btn btn-success flex-grow-1 me-2">Export to CSV</button>
+            <button id="exportJsonBtn" class="btn btn-primary flex-grow-1 me-2">Export to JSON</button>
+            <button id="exportTxtBtn" class="btn btn-warning flex-grow-1">Export to TXT</button>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Import csv -->
+        <h2 class="text-center mt-4">CSV Import Tool</h2>
+
+        <form id="csv-form">
+            <div class="mb-3">
+                <label for="databaseUniqueId" class="form-label">Database Unique ID:</label>
+                <input type="text" class="form-control" id="databaseUniqueId" name="databaseUniqueId" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="file" class="form-label">CSV File:</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+            </div>
+
+            <h5>Column Definitions</h5>
+            <div id="columns">
+                <div class="column row mb-3">
+                    <div class="col">
+                        <label for="column_name_1" class="form-label">Column Name:</label>
+                        <input type="text" class="form-control" id="column_name_1" name="column_name" required>
+                    </div>
+                    <div class="col">
+                        <label for="data_type_1" class="form-label">Data Type:</label>
+                        <select class="form-select" id="data_type_1" name="data_type">
+                            <option value="TEXT">Text</option>
+                            <option value="INTEGER">Integer</option>
+                            <option value="DATE">Date</option>
+                            <option value="DATETIME">DateTime</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="transformation_1" class="form-label">Transformation:</label>
+                        <select class="form-select" id="transformation_1" name="transformation">
+                            <option value="">None</option>
+                            <option value="capitalize">Capitalize</option>
+                            <option value="uppercase">Uppercase</option>
+                            <option value="lowercase">Lowercase</option>
+                            <option value="removeextraspaces">Remove Extra Spaces</option>
+                            <option value="removespecialcharacters">Remove Special Characters</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger remove-column mt-4">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="add-column" class="btn btn-primary mb-3">+ Add Column</button>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Submit</button>
+            </div>
+        </form>
+
+        <div class="section-divider"></div>
+
+        <h2 class="text-center mt-4">JSON Data Importer</h2>
+        <form id="jsonForm">
+            <div class="mb-3">
+                <label for="dbConnectionId" class="form-label">Database Connection ID</label>
+                <input type="text" class="form-control" id="dbConnectionId" placeholder="Enter DB Connection ID" required>
+            </div>
+            <div class="mb-3">
+                <label for="jsonData" class="form-label">JSON Data</label>
+                <textarea class="form-control" id="jsonData" rows="10" placeholder="Paste your JSON data here" required></textarea>
+            </div>
+            <div class="text-center">
+                <button type="button" id="submitButton" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+        <div id="responseSection" class="mt-4" style="display: none;">
+            <div id="responseAlert" class="alert"></div>
+        </div>
+
+    </div>
+</div>
+
+<div id="responseMessage"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
