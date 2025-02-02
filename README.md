@@ -1,8 +1,9 @@
 # DataBridge Dashboard for Managing Tabular Data  
 
+This is a Spring Boot-based project that allows users to manage, export, and import **tabular data** into a database. The application includes a user-friendly interface for interacting with the data stored in the database, with support for multiple formats like **CSV**, **JSON**, and **TXT**. Additionally, the application features a **dark mode** option for an improved user experience.<br>
 **Screen Recording of DataBridge DashBoard:** "https://drive.google.com/file/d/1OKpXzuc2inGBxq3u-orE6J0q5KuRZC9x/view?usp=sharing"
 
-This is a Spring Boot-based project that allows users to manage, export, and import **tabular data** into a database. The application includes a user-friendly interface for interacting with the data stored in the database, with support for multiple formats like **CSV**, **JSON**, and **TXT**. Additionally, the application features a **dark mode** option for an improved user experience.
+
 ---
 
 ## Features  
